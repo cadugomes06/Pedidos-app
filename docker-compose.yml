@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "Senha@123"
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Senha@123"
+    ports:
+      - "1433:1433"
+    networks:
+      - pedidos-network
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Senha@123", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    container_name: redpanda
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=1G
+      - --reserve-memory=0M
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=0.0.0.0:9092
+      - --advertise-kafka-addr=redpanda:9092
+    ports:
+      - "9092:9092"
+      - "9644:9644"
+    networks:
+      - pedidos-network
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "info", "--brokers=localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  pedidosapp:
+    image: pedidosapp
+    container_name: pedidosapp
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PedidoDB;User Id=sa;Password=Senha@123;TrustServerCertificate=True;
+      - Kafka__BootstrapServers=redpanda:9092
+      - Kafka__Topic=orders
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    networks:
+      - pedidos-network
+
+  pedidosworker:
+    image: pedidosworker
+    container_name: pedidosworker
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PedidoDB;User Id=sa;Password=Senha@123;TrustServerCertificate=True;
+      - Kafka__BootstrapServers=redpanda:9092
+      - Kafka__Topic=orders
+      - Kafka__GroupId=pedidos-worker-group
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    networks:
+      - pedidos-network
+
+networks:
+  pedidos-network:
+    driver: bridge
