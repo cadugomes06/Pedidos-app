@@ -1,0 +1,135 @@
+﻿@{
+    ViewData["Title"] = "Pedidos";
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/css/CustomCss/Pages/HomeIndex.css" rel="stylesheet" asp-append-version="true" />
+    <title>Pedidos - Actemium</title>
+
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="navbar-content">
+            <div class="brand">ACTEMIUM</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Pedidos</h1>
+            <p>Visualização de todos os pedidos disponíveis no sistema.</p>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Lista de Pedidos</h2>
+
+                <div>
+                    <button class="btn btn-create" onclick="openCreateOrderModal()">Criar Pedido</button>
+                    <button class="btn btn-refresh" onclick="loadOrders()">Atualizar</button>
+                </div>
+            </div>
+
+            <div id="status" class="status">Carregando pedidos...</div>
+
+            <div class="table-wrapper">
+                <table id="ordersTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Valor</th>
+                            <th>Data do Pedido</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody"></tbody>
+                </table>
+            </div>
+
+            <div id="emptyState" class="empty-state" style="display:none;">
+                Nenhum pedido encontrado.
+            </div>
+        </section>
+    </main>
+
+    @*MODAL PARA CRIAR O PEDIDO*@
+    <div id="createOrderModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Novo Pedido</h3>
+                <button class="modal-close" onclick="closeCreateOrderModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="cliente">Cliente</label>
+                    <input type="text" id="cliente" placeholder="Digite o nome do cliente" />
+                </div>
+
+                <div class="form-group">
+                    <label for="valor">Valor</label>
+                    <input type="number" id="valor" step="0.01" placeholder="Digite o valor do pedido" />
+                </div>
+
+                <div id="createOrderStatus" class="form-status"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCreateOrderModal()">Cancelar</button>
+                <button class="btn btn-create" onclick="createOrder()">Salvar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    @*MODAL DE EXIBIÇÃO DO PEDIDO*@
+    <div id="orderDetailsModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Detalhes do Pedido</h3>
+                <button class="modal-close" onclick="closeOrderDetailsModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">ID</span>
+                        <span id="detailId" class="detail-value">-</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Cliente</span>
+                        <span id="detailCliente" class="detail-value">-</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Valor</span>
+                        <span id="detailValor" class="detail-value">-</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Data do Pedido</span>
+                        <span id="detailDataPedido" class="detail-value">-</span>
+                    </div>
+                </div>
+
+                <div id="detailsStatus" class="form-status"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeOrderDetailsModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="~/js/Order/loadOrders.js" asp-append-version="true"></script>
+    <script src="~/js/Order/createOrder.js" asp-append-version="true"></script>
+    <script src="~/js/Order/orderDetail.js" asp-append-version="true"></script>
+</body>
+</html>
