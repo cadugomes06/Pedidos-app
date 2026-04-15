@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
+using PedidosApp.Infrastructure;
 using PedidosApp.Service.Implementation;
 using PedidosApp.Service.Interface;
 
@@ -29,6 +30,13 @@ namespace PedidosApp
             builder.Services.AddScoped<IOrderService, OrderService>();
 
             var app = builder.Build();
+
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.Migrate();
+            }
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
