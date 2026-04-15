@@ -9,9 +9,9 @@ API REST em .NET 9 para cadastro e consulta de pedidos, com frontend em Razor (M
 ```
 ┌─────────────────────┐        ┌──────────────┐        ┌─────────────┐
 │   Frontend (Razor)  │──────▶ │  API (.NET)  │──────▶ │  Redpanda   │
-└─────────────────────┘        └──────────────┘        └─────────────┘
-                                       │
-                                       ▼
+└─────────────────────┘        └──────┬───────┘        └─────────────┘
+                                      │
+                                      ▼
                                ┌──────────────┐
                                │  SQL Server  │
                                └──────────────┘
@@ -30,7 +30,7 @@ API REST em .NET 9 para cadastro e consulta de pedidos, com frontend em Razor (M
 - Entity Framework Core + SQL Server
 - Confluent.Kafka (Redpanda)
 - xUnit + Moq (testes unitários)
-- Docker
+- Docker / Docker Compose
 
 ---
 
@@ -43,7 +43,48 @@ API REST em .NET 9 para cadastro e consulta de pedidos, com frontend em Razor (M
 
 ---
 
-## ⚙️ Configuração
+## 🐳 Subindo tudo com Docker Compose (Recomendado)
+
+A forma mais simples de rodar o sistema completo — API, Worker, Redpanda e SQL Server sobem juntos com um único comando.
+
+### 1. Clone os dois repositórios
+
+```bash
+git clone https://github.com/cadugomes06/Pedidos-app.git
+git clone https://github.com/cadugomes06/Pedidos-worker.git
+```
+
+### 2. Build das imagens
+
+```bash
+# Imagem da API
+cd Pedidos-app
+docker build -t pedidosapp .
+
+# Imagem do Worker
+cd ../Pedidos-worker/PedidosWorker
+docker build -t pedidosworker .
+```
+
+### 3. Suba todos os serviços
+
+```bash
+cd ../../Pedidos-app
+docker-compose up
+```
+
+| Serviço | URL |
+|---------|-----|
+| API + Frontend | http://localhost:8080 |
+| Redpanda | localhost:9092 |
+| SQL Server | localhost:1433 |
+
+> Para rodar em background: `docker-compose up -d`
+> Para parar tudo: `docker-compose down`
+
+---
+
+## ⚙️ Rodando localmente (sem Docker)
 
 ### 1. Clone o repositório
 
@@ -98,40 +139,13 @@ cd PedidosApp
 dotnet ef database update
 ```
 
----
-
-## ▶️ Rodando localmente
+### 5. Rode a aplicação
 
 ```bash
-cd PedidosApp
 dotnet run
 ```
 
 A aplicação estará disponível em `http://localhost:5000`.
-
----
-
-## 🐳 Rodando via Docker
-
-### Build da imagem
-
-```bash
-docker build -t pedidosapp .
-```
-
-### Executar o container
-
-```bash
-docker run -p 8080:8080 \
-  -e ConnectionStrings__DefaultConnection="Server=host.docker.internal;Database=PedidoDB;Trusted_Connection=True;TrustServerCertificate=True;" \
-  -e Kafka__BootstrapServers="host.docker.internal:9092" \
-  -e Kafka__Topic="orders" \
-  pedidosapp
-```
-
-Acesse: `http://localhost:8080`
-
-> **Nota:** Use `host.docker.internal` para acessar serviços rodando no host a partir do container.
 
 ---
 
@@ -184,6 +198,7 @@ Pedidos-app/
 ├── PedidosApp.Test/
 │   └── service/
 │       └── OrderServiceTests.cs
+├── docker-compose.yml
 ├── Dockerfile
 └── PedidosApp.sln
 ```
