@@ -1,39 +1,53 @@
-# Docker
-# Build and push an image to Azure Container Registry
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
-trigger:
+﻿trigger:
 - main
 
 resources:
 - repo: self
 
 variables:
-  # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'b187afcf-1e15-4bca-aa33-818042047db8'
   imageRepository: 'pedidosapp'
-  containerRegistry: 'pedidosregestry.azurecr.io'
-  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  tag: '$(Build.BuildId)'
-
-  # Agent VM image name
+  containerRegistry: 'pedidosregistry.azurecr.io'
+  dockerfilePath: '/Dockerfile'
+  tag: ''
   vmImageName: 'ubuntu-latest'
 
 stages:
+- stage: Test
+  displayName: Run tests
+  jobs:
+  - job: Test
+    displayName: Test
+    pool:
+      vmImage: 
+    steps:
+    - task: UseDotNet@2
+      displayName: Install .NET 9
+      inputs:
+        packageType: 'sdk'
+        version: '9.x'
+    - task: DotNetCoreCLI@2
+      displayName: Run unit tests
+      inputs:
+        command: 'test'
+        projects: 'PedidosApp.Test/PedidosApp.Test.csproj'
+        arguments: '--configuration Release'
+
 - stage: Build
   displayName: Build and push stage
+  dependsOn: Test
   jobs:
   - job: Build
     displayName: Build
     pool:
-      vmImage: $(vmImageName)
+      vmImage: 
     steps:
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
+        repository: 
+        dockerfile: 
+        containerRegistry: 
         tags: |
-          $(tag)
+          
