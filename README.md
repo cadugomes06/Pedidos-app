@@ -31,6 +31,7 @@ API REST em .NET 9 para cadastro e consulta de pedidos, com frontend em Razor (M
 - Confluent.Kafka (Redpanda)
 - xUnit + Moq (testes unitários)
 - Docker / Docker Compose
+- Azure DevOps (CI/CD)
 
 ---
 
@@ -38,8 +39,6 @@ API REST em .NET 9 para cadastro e consulta de pedidos, com frontend em Razor (M
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [Docker](https://www.docker.com/products/docker-desktop/)
-- SQL Server (local ou via Docker)
-- Redpanda rodando na porta `9092`
 
 ---
 
@@ -54,7 +53,17 @@ git clone https://github.com/cadugomes06/Pedidos-app.git
 git clone https://github.com/cadugomes06/Pedidos-worker.git
 ```
 
-### 2. Build das imagens
+### 2. Configure o arquivo `.env`
+
+Na raiz do `Pedidos-app`, copie o `.env.example` para `.env`:
+
+```bash
+cp .env.example .env
+```
+
+O `.env.example` já vem com valores padrão prontos para uso local — não é necessário alterar nada para rodar.
+
+### 3. Build das imagens
 
 ```bash
 # Imagem da API
@@ -66,7 +75,7 @@ cd ../Pedidos-worker/PedidosWorker
 docker build -t pedidosworker .
 ```
 
-### 3. Suba todos os serviços
+### 4. Suba todos os serviços
 
 ```bash
 cd ../../Pedidos-app
@@ -179,6 +188,17 @@ dotnet test
 
 ---
 
+## 🔄 CI/CD — Azure DevOps
+
+O projeto possui pipeline configurado no Azure DevOps que executa automaticamente a cada push na branch `main`:
+
+1. **Stage Test** → Roda os testes unitários
+2. **Stage Build** → Builda e publica a imagem Docker no Azure Container Registry
+
+O arquivo de configuração está em `azure-pipelines.yml` na raiz do repositório.
+
+---
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -188,6 +208,7 @@ Pedidos-app/
 │   ├── Domain/             # Entidade Order
 │   ├── DTO/                # CreateOrderDTO, ApiResponseDTO
 │   ├── Infrastructure/     # ApplicationDbContext (EF Core)
+│   ├── Migrations/         # Migrations do EF Core
 │   ├── Service/
 │   │   ├── Interface/      # IOrderService
 │   │   └── Implementation/ # OrderService
@@ -198,6 +219,8 @@ Pedidos-app/
 ├── PedidosApp.Test/
 │   └── service/
 │       └── OrderServiceTests.cs
+├── .env.example
+├── azure-pipelines.yml
 ├── docker-compose.yml
 ├── Dockerfile
 └── PedidosApp.sln
